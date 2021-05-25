@@ -95,3 +95,19 @@ You will own this process and will be responsible for future expansions to the c
 ## Testing
 
 We've set up a small test harness you can use - just run `npm test` and see how you do!
+
+## Logs Proposal
+One proposal could be having a file name with this convention:
+```
+<year>-<month>-<day>-<detector-type>-<base>.log
+```
+
+Then some logs with this convention:
+````
+<date-time> <reference-id> <number>
+````
+
+Then each Detector can log at the end of the day in a specific one by type instead
+of a combination of detector types
+
+You can take a look at the example at `back-end/src/__tests__/2007-04-05-happiness-5.log`
