@@ -5,32 +5,31 @@ import { buildBases, buildCalculation, buildOutput } from "./utils";
 
 export const evaluate = async (_filename: string): Promise<OutputType> => {
   const stream = createReadStream(_filename);
-  let output: OutputType;
+  let data: string = '';
 
   return new Promise((resolve, reject) => {
     
-    function onData(data: string | Buffer) {
-      const str = Buffer.from(data).toString();
-      const detectors = str.match(REGEXP.RAW_DETECTORS) || [];
-      const logs = str.match(REGEXP.RAW_LOG_GROUPS) || [];
-      const bases = buildBases(detectors);
-      const calculation = buildCalculation({ logs, bases });
-      
-      output = buildOutput(calculation);
-      return output;
+    function onReadData(chunk: string | Buffer) {
+      data += Buffer.from(chunk).toString();
     }
 
-    function onClose() {
-      return resolve(output);
-    }
-
-    function onError(e: Error) {
+    function onReadError(e: Error) {
       return reject(e);
     }
 
+    function onReadEnd() {
+      const detectors = data.match(REGEXP.RAW_DETECTORS) || [];
+      const logs = data.match(REGEXP.RAW_LOG_GROUPS) || [];
+      
+      const bases = buildBases(detectors);
+      const calculation = buildCalculation({ logs, bases });
+      const output = buildOutput(calculation);
+      return resolve(output);
+    }
+
     return stream
-      .on("data", onData)
-      .on("close", onClose)
-      .on("error", onError);
+      .on("data", onReadData)
+      .on("error", onReadError)
+      .on("end", onReadEnd);
   });
 }
